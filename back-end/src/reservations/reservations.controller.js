@@ -82,7 +82,18 @@ function validateReservation(req, res, next) {
   } else if (reservation < now) {
     next({
       status: 400,
-      message: `Reservation must be reserved for a date in the future.`,
+      message: `Reservation must be for a date in the future.`,
+    });
+  } else if (temp_reservation_time < 1030) {
+    next({
+      status: 400,
+      message: "Reservation cannot be before we open!",
+    });
+  } else if (temp_reservation_time > 2130) {
+    next({
+      status: 400,
+      message:
+        "Reservation cannot be less than one hour before we close!",
     });
   }
   next()
