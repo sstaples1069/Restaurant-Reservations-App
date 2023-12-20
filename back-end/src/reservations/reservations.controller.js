@@ -65,6 +65,29 @@ function validTime(req, res, next) {
   next();
 }
 
+function validateReservation(req, res, next) {
+  const { data = {} } = req.body;
+  const { reservation_date, reservation_time } = req.body.data;
+  const reservation = new Date(`${reservation_date} PDT`).setHours(reservation_time.substring(0, 2), reservation_time.substring(3));
+  const date = new Date(reservation_date);
+  const day = date.getUTCDay();
+  const now = Date.now();
+  let temp_reservation_time =
+    data["reservation_time"] && data["reservation_time"].replace(":", "");
+  if (day === 2) {
+    next({
+      status: 400,
+      message: `We are closed on Tuesdays, please pick a day when we are open!`,
+    });
+  } else if (reservation < now) {
+    next({
+      status: 400,
+      message: `Reservation must be reserved for a date in the future.`,
+    });
+  }
+  next()
+}
+
 function validPeople(req, res, next) {
   const { data = {} } = req.body;
   if (typeof data["people"] !== "number") {
@@ -109,6 +132,7 @@ module.exports = {
     hasRequiredProperties,
     validDate,
     validTime,
+    validateReservation,
     validPeople,
     validPhone,
     asyncErrorBoundary(create),
