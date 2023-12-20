@@ -84,8 +84,19 @@ function validateReservation(req, res, next) {
       status: 400,
       message: `Reservation must be reserved for a date in the future.`,
     });
+  } else if (temp_reservation_time < 1030) {
+    next({
+      status: 400,
+      message: "Reservation cannot be before business hours!",
+    });
+  } else if (temp_reservation_time > 2130) {
+    next({
+      status: 400,
+      message:
+        "Reservation cannot be less than one hour before business closing!",
+    });
   }
-  next()
+  next();
 }
 
 function validPeople(req, res, next) {
@@ -117,8 +128,13 @@ function read(req, res) {
 }
 
 async function list(req, res) {
-  const data = await service.list(req.query.date);
+  if (req.query.mobile_number) {
+    const data = await service.search(req.query.mobile_number);
     res.json({ data });
+  } else {
+    const data = await service.list(req.query.date);
+    res.json({ data });
+  }
 }
 
 async function create(req, res) {
@@ -126,16 +142,50 @@ async function create(req, res) {
   res.status(201).json({ data });
 }
 
+async function reservationExists(req, res, next) {
+  const { reservation_id } = req.params;
+  const reservation = await service.read(reservation_id);
+  if (reservation) {
+    res.locals.reservation = reservation;
+    return next();
+  } else {
+    return next({
+      status: 404,
+      message: `Reservation ID ${reservation_id} does not exist.`,
+    });
+  }
+}
+
+
+function bookedCheck(req, res, next) {
+  const { data = {} } = req.body;
+  const status = data["status"];
+
+  if (status === "booked" || status === undefined) {
+    return next();
+  }
+  return next({
+    status: 400,
+    message: `Invalid or unknown status: ${status}`,
+  });
+}
+
+
+
+
 module.exports = {
   create: [
     hasOnlyValidProperties,
     hasRequiredProperties,
     validDate,
     validTime,
-    validateReservation,
     validPeople,
     validPhone,
+    validateReservation,
+    bookedCheck,
     asyncErrorBoundary(create),
   ],
-  list: [asyncErrorBoundary(list)]
+  list: [asyncErrorBoundary(list)],
+  read: [asyncErrorBoundary(reservationExists), read],
+  
 };

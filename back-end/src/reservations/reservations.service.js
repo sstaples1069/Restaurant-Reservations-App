@@ -18,8 +18,10 @@ function read(reservation_id) {
   return knex("reservations").select("*").where({ reservation_id }).first();
 }
 
-module.exports = {
-  list,
-  read,
-  create
-};
+
+  
+  module.exports = {
+    list,
+    read,
+    create,
+  };
