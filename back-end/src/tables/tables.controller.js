@@ -140,8 +140,12 @@ function capacityCheck(req, res, next) {
     res.json({ data });
   }
 
- 
-
+  async function finish(req, res) {
+    const table = res.locals.table;
+    const data = await service.finish(table.table_id, table.reservation_id);
+    res.json({ data });
+  }
+  
   module.exports = {
     list: asyncErrorBoundary(list),
     create: [
@@ -161,5 +165,9 @@ function capacityCheck(req, res, next) {
       reservationNotSeated,
       asyncErrorBoundary(update),
     ],
-    
+    finish: [
+      asyncErrorBoundary(tableExists),
+      currentlyOccupied,
+      asyncErrorBoundary(finish),
+    ],
   };

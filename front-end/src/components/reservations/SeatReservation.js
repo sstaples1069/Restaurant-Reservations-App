@@ -3,6 +3,7 @@ import { useParams, useHistory } from "react-router-dom";
 import { readReservation, listTables, seatReservation } from "../../utils/api";
 import TableOption from "../tables/TableOption";
 import ErrorAlert from "../../layout/ErrorAlert";
+import Loading from "../../layout/Loading";
 
 export default function SeatReservation() {
   const [currentReservation, setCurrentReservation] = useState({});
